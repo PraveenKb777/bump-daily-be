@@ -1,0 +1,25 @@
+{
+  "name": "bd-auth",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate:local": "wrangler d1 migrations apply user-data-dev --local",
+    "db:migrate:remote": "wrangler d1 migrations apply user-data-dev --remote",
+    "db:migrate:prod": "wrangler d1 migrations apply user-data-prod --remote",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "rm -f dev.db && npm run db:generate && npm run db:migrate:local"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.3",
+    "hono": "^4.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "drizzle-kit": "^0.31.4",
+    "wrangler": "^4.4.0"
+  }
+}

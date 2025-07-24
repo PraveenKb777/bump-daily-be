@@ -1,0 +1,67 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bd-auth",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-07-22",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "user-data-dev",
+      "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
+    }
+  ],
+
+  "env": {
+    "production": {
+      "name": "user-data-api-prod",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "user-data-prod",
+          "database_id": "your-d1-database-id"
+        }
+      ]
+    },
+    "development": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "user-data-dev",
+          "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
+        }
+      ]
+    }
+  },
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "MY_VAR": "my-variable",
+    "SUPABASE_JWT_SECRET":"TQcSBD9w9OHlA4XZAsvhMiBNE6myRUD2IqA5pJGlCL5M59jlC5NyW7nlg9ykU1hYSYgPWFUIpT4vt/5UJtz1kA==",
+    "SUPABASE_URL" :"https://stnmshwlrotjdgbmxxhx.supabase.co"
+  },
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "MY_KV_NAMESPACE",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  //   }
+  // ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  // "d1_databases": [
+  //   {
+  //     "binding": "MY_DB",
+  //     "database_name": "my-database",
+  //     "database_id": ""
+  //   }
+  // ],
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
+}
