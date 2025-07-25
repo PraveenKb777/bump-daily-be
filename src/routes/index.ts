@@ -3,6 +3,7 @@ import type { Bindings, Variables } from '../types'
 import { auth } from './auth'
 import { profile } from './profile'
 import { admin } from './admin'
+import { communitiesRoute } from './communities'
 
 export function setupRoutes(app: Hono<{ Bindings: Bindings; Variables: Variables }>) {
   // Health check
@@ -11,6 +12,7 @@ export function setupRoutes(app: Hono<{ Bindings: Bindings; Variables: Variables
   })
 
   // Mount route groups
+  app.route("/api/communities",communitiesRoute)
   app.route('/api', auth)
   app.route('/api/profile', profile)
   app.route('/api/admin', admin)

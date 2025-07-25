@@ -11,6 +11,8 @@ export const authMiddleware = async (c: AuthContext, next: Next) => {
     const authHeader = c.req.header('Authorization')
     const token = extractTokenFromHeader(authHeader)
 
+    console.log(authHeader)
+
     const { user_metadata, sub } = await verifySupabaseToken(
       token, 
       c.env.SUPABASE_JWT_SECRET

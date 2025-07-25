@@ -1,7 +1,7 @@
 import type { Config } from 'drizzle-kit'
 import * as process from 'node:process';
 export default {
-  schema: './src/schema.ts',
+  schema: './src/db/schema.ts',
   out: './migrations', 
   dialect: 'sqlite',
   driver: 'd1-http',
