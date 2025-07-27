@@ -4,6 +4,7 @@ import { auth } from './auth'
 import { profile } from './profile'
 import { admin } from './admin'
 import { communitiesRoute } from './communities'
+import { post } from './posts'
 
 export function setupRoutes(app: Hono<{ Bindings: Bindings; Variables: Variables }>) {
   // Health check
@@ -13,6 +14,7 @@ export function setupRoutes(app: Hono<{ Bindings: Bindings; Variables: Variables
 
   // Mount route groups
   app.route("/api/communities",communitiesRoute)
+  app.route("/api/posts",post)
   app.route('/api', auth)
   app.route('/api/profile', profile)
   app.route('/api/admin', admin)

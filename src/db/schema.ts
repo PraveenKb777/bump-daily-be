@@ -73,7 +73,7 @@ export const posts = sqliteTable(
     type: text("type").notNull(), // 'text', 'link', 'image'
     url: text("url"),
     community_id: text("community_id")
-      .notNull()
+      .notNull().default("general")
       .references(() => communities.id, { onDelete: "cascade" }),
     author_id: text("author_id")
       .notNull()
