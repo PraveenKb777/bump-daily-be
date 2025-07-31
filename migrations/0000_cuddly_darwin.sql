@@ -1,3 +1,40 @@
+CREATE TABLE `comment_votes` (
+	`id` text PRIMARY KEY NOT NULL,
+	`comment_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`vote_type` integer NOT NULL,
+	`created_at` text NOT NULL,
+	FOREIGN KEY (`comment_id`) REFERENCES `comments`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `idx_comment_votes_comment` ON `comment_votes` (`comment_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `comment_votes_comment_id_user_id_unique` ON `comment_votes` (`comment_id`,`user_id`);--> statement-breakpoint
+CREATE TABLE `comments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`post_id` text NOT NULL,
+	`author_id` text NOT NULL,
+	`parent_id` text,
+	`body` text NOT NULL,
+	`created_at` text NOT NULL,
+	`updated_at` text,
+	`upvotes` integer DEFAULT 0,
+	`downvotes` integer DEFAULT 0,
+	`score` integer DEFAULT 0,
+	`reply_count` integer DEFAULT 0,
+	`depth` integer DEFAULT 0,
+	`is_deleted` integer DEFAULT false,
+	`deleted_by` text,
+	FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`parent_id`) REFERENCES `comments`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `idx_comments_post_created` ON `comments` (`post_id`,`created_at`);--> statement-breakpoint
+CREATE INDEX `idx_comments_parent` ON `comments` (`parent_id`);--> statement-breakpoint
+CREATE INDEX `idx_comments_author` ON `comments` (`author_id`);--> statement-breakpoint
+CREATE INDEX `idx_comments_score` ON `comments` (`score`);--> statement-breakpoint
+CREATE INDEX `idx_comments_post_parent` ON `comments` (`post_id`,`parent_id`);--> statement-breakpoint
 CREATE TABLE `communities` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -46,7 +83,7 @@ CREATE TABLE `posts` (
 	`community_id` text NOT NULL,
 	`author_id` text NOT NULL,
 	`created_at` text NOT NULL,
-	`updated_at` integer,
+	`updated_at` text,
 	`upvotes` integer DEFAULT 0,
 	`downvotes` integer DEFAULT 0,
 	`score` integer DEFAULT 0,

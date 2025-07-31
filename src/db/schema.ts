@@ -5,6 +5,7 @@ import {
   integer,
   index,
   unique,
+  foreignKey,
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
@@ -73,13 +74,13 @@ export const posts = sqliteTable(
     type: text("type").notNull(), // 'text', 'link', 'image'
     url: text("url"),
     community_id: text("community_id")
-      .notNull().default("general")
+      .notNull()
       .references(() => communities.id, { onDelete: "cascade" }),
     author_id: text("author_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    created_at: text("created_at").notNull(),
-    updated_at: integer("updated_at"),
+    created_at: text("created_at").notNull(), 
+    updated_at: text("updated_at"),
     upvotes: integer("upvotes").default(0),
     downvotes: integer("downvotes").default(0),
     score: integer("score").default(0),
@@ -98,7 +99,7 @@ export const posts = sqliteTable(
   }
 );
 
-// Post votes table (for tracking individual votes)
+// Post votes table
 export const postVotes = sqliteTable(
   "post_votes",
   {
@@ -109,8 +110,8 @@ export const postVotes = sqliteTable(
     user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    vote_type: integer("vote_type").notNull(), // -1 for downvote, 1 for upvote
-    created_at: text("created_at").notNull(),
+    vote_type: integer("vote_type").notNull(),
+    created_at: text("created_at").notNull(), 
   },
   (table) => [
     index("idx_post_votes_post").on(table.post_id),
@@ -129,12 +130,71 @@ export const communityMemberships = sqliteTable(
     user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    joined_at: text("joined_at").notNull(),
-    role: text("role").default("member"), // 'member', 'moderator', 'admin'
+    joined_at: text("joined_at").notNull(), 
+    role: text("role").default("member"),
   },
   (table) => [
     index("idx_community_memberships_user").on(table.user_id),
     unique().on(table.community_id, table.user_id),
+  ]
+);
+
+// Comments table
+
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: text("id").primaryKey(),
+    post_id: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    author_id: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    parent_id: text("parent_id"), // Remove the reference initially
+    body: text("body").notNull(),
+    created_at: text("created_at").notNull(),
+    updated_at: text("updated_at"),
+    upvotes: integer("upvotes").default(0),
+    downvotes: integer("downvotes").default(0),
+    score: integer("score").default(0),
+    reply_count: integer("reply_count").default(0),
+    depth: integer("depth").default(0),
+    is_deleted: integer("is_deleted", { mode: "boolean" }).default(false),
+    deleted_by: text("deleted_by"),
+  },
+  (table) => [
+    index("idx_comments_post_created").on(table.post_id, table.created_at),
+    index("idx_comments_parent").on(table.parent_id),
+    index("idx_comments_author").on(table.author_id),
+    index("idx_comments_score").on(table.score),
+    index("idx_comments_post_parent").on(table.post_id, table.parent_id),
+    // Add the foreign key constraint here instead
+    foreignKey({
+      columns: [table.parent_id],
+      foreignColumns: [table.id],
+      name: "comments_parent_id_fk"
+    }).onDelete("cascade"),
+  ]
+);
+
+// Comment votes table
+export const commentVotes = sqliteTable(
+  "comment_votes",
+  {
+    id: text("id").primaryKey(),
+    comment_id: text("comment_id")
+      .notNull()
+      .references(() => comments.id, { onDelete: "cascade" }),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    vote_type: integer("vote_type").notNull(),
+    created_at: text("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_comment_votes_comment").on(table.comment_id),
+    unique().on(table.comment_id, table.user_id),
   ]
 );
 
@@ -152,6 +212,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   communities: many(communities),
   memberships: many(communityMemberships),
   votes: many(postVotes),
+  comments: many(comments),
+  commentVotes: many(commentVotes),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -187,6 +249,7 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
     references: [communities.id],
   }),
   votes: many(postVotes),
+  comments: many(comments),
 }));
 
 export const postVotesRelations = relations(postVotes, ({ one }) => ({
@@ -214,6 +277,37 @@ export const communityMembershipsRelations = relations(
   })
 );
 
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  post: one(posts, {
+    fields: [comments.post_id],
+    references: [posts.id],
+  }),
+  author: one(users, {
+    fields: [comments.author_id],
+    references: [users.id],
+  }),
+  parent: one(comments, {
+    fields: [comments.parent_id],
+    references: [comments.id],
+    relationName: "parent_comment",
+  }),
+  replies: many(comments, {
+    relationName: "parent_comment",
+  }),
+  votes: many(commentVotes),
+}));
+
+export const commentVotesRelations = relations(commentVotes, ({ one }) => ({
+  comment: one(comments, {
+    fields: [commentVotes.comment_id],
+    references: [comments.id],
+  }),
+  user: one(users, {
+    fields: [commentVotes.user_id],
+    references: [users.id],
+  }),
+}));
+
 // Types for TypeScript - Original tables
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -236,3 +330,9 @@ export type NewPostVote = typeof postVotes.$inferInsert;
 
 export type CommunityMembership = typeof communityMemberships.$inferSelect;
 export type NewCommunityMembership = typeof communityMemberships.$inferInsert;
+
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+
+export type CommentVote = typeof commentVotes.$inferSelect;
+export type NewCommentVote = typeof commentVotes.$inferInsert;

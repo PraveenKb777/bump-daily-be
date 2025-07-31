@@ -1,7 +1,13 @@
 import { Hono } from "hono";
 import { Bindings, Variables } from "../types";
 import { drizzle } from "drizzle-orm/d1";
-import { communities, Community, communityMemberships, profiles, users } from "../db";
+import {
+  communities,
+  Community,
+  communityMemberships,
+  profiles,
+  users,
+} from "../db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { generateId } from "../utils";
 import { authMiddleware } from "../middleware";
@@ -35,7 +41,6 @@ communitiesRoute.get("/", async (c) => {
 });
 
 communitiesRoute.get("/details/:name", async (c) => {
-  
   const db = drizzle(c.env.DB);
   const communityName = c.req.param("name");
 
@@ -100,8 +105,6 @@ communitiesRoute.get("/my-communities", authMiddleware, async (c) => {
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
-
-
 
 communitiesRoute.post("/", authMiddleware, async (c) => {
   const db = drizzle(c.env.DB);
@@ -258,7 +261,8 @@ communitiesRoute.patch("/:name", authMiddleware, async (c) => {
       return c.json({ error: "User not authenticated" }, 401);
     }
 
-    const { display_name, description, is_private }: Partial<Community> = await c.req.json();
+    const { display_name, description, is_private }: Partial<Community> =
+      await c.req.json();
 
     const community = await db
       .select()
@@ -282,10 +286,7 @@ communitiesRoute.patch("/:name", authMiddleware, async (c) => {
       .limit(1);
 
     if (!membership.length || membership[0].role !== "admin") {
-      return c.json(
-        { error: "No permission to edit this community" },
-        403
-      );
+      return c.json({ error: "No permission to edit this community" }, 403);
     }
 
     await db
@@ -297,12 +298,10 @@ communitiesRoute.patch("/:name", authMiddleware, async (c) => {
       message: `Community '${name}' updated successfully.`,
       data: { name, display_name, description, is_private },
     });
-
   } catch (err) {
     console.error("Failed to update community:", err);
     return c.json({ error: "Internal server error" }, 500);
   }
 });
-
 
 export { communitiesRoute };

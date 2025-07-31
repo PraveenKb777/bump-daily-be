@@ -10,6 +10,13 @@
       "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bd-dev-bucket",
+      "preview_bucket_name": "bd-dev-bucket"
+    }
+  ],
 
   "env": {
     "production": {
@@ -29,15 +36,22 @@
           "database_name": "user-data-dev",
           "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
         }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "bd-dev-bucket",
+          "preview_bucket_name": "bd-dev-bucket"
+        }
       ]
     }
   },
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "MY_VAR": "my-variable",
-    "SUPABASE_JWT_SECRET":"TQcSBD9w9OHlA4XZAsvhMiBNE6myRUD2IqA5pJGlCL5M59jlC5NyW7nlg9ykU1hYSYgPWFUIpT4vt/5UJtz1kA==",
-    "SUPABASE_URL" :"https://stnmshwlrotjdgbmxxhx.supabase.co"
-  },
+    "SUPABASE_JWT_SECRET": "TQcSBD9w9OHlA4XZAsvhMiBNE6myRUD2IqA5pJGlCL5M59jlC5NyW7nlg9ykU1hYSYgPWFUIpT4vt/5UJtz1kA==",
+    "SUPABASE_URL": "https://stnmshwlrotjdgbmxxhx.supabase.co"
+  }
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",
