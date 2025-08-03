@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { Bindings, Variables } from "../types";
+import { AuthenticatedUser, Bindings, Variables } from "../types";
 import { drizzle } from "drizzle-orm/d1";
 import {
   communities,
@@ -11,6 +11,8 @@ import {
 import { and, desc, eq, sql } from "drizzle-orm";
 import { generateId } from "../utils";
 import { authMiddleware } from "../middleware";
+import { isValidUsername } from "../utils/checkValidUserName";
+import { optionalAuthMiddleware } from "../middleware/optionalAuth";
 
 const communitiesRoute = new Hono<{
   Bindings: Bindings;
@@ -40,7 +42,7 @@ communitiesRoute.get("/", async (c) => {
   }
 });
 
-communitiesRoute.get("/details/:name", async (c) => {
+communitiesRoute.get("/details/:name", optionalAuthMiddleware, async (c) => {
   const db = drizzle(c.env.DB);
   const communityName = c.req.param("name");
 
@@ -57,7 +59,7 @@ communitiesRoute.get("/details/:name", async (c) => {
         creator_username: profiles.username,
       })
       .from(communities)
-      .leftJoin(profiles, eq(communities.created_by, profiles.id))
+      .leftJoin(profiles, eq(communities.created_by, profiles.userId))
       .where(eq(communities.name, communityName))
       .limit(1);
 
@@ -65,9 +67,35 @@ communitiesRoute.get("/details/:name", async (c) => {
       return c.json({ error: "Community not found" }, 404);
     }
 
-    return c.json(community[0]);
+    const communityData = community[0];
+
+    // If user is logged in, check if they're a member
+    const user = c.get("user") as AuthenticatedUser | undefined;
+    let isMember = false;
+
+    if (user) {
+      const membership = await db
+        .select()
+        .from(communityMemberships)
+        .where(
+          and(
+            eq(communityMemberships.community_id, communityData.id),
+            eq(communityMemberships.user_id, user.id)
+          )
+        )
+        .limit(1)
+        .all();
+      console.log("membership", membership);
+
+      isMember = membership.length > 0;
+    }
+
+    return c.json({
+      ...communityData,
+      isMember,
+    });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching community:", error);
     return c.json({ error: "Failed to fetch community" }, 500);
   }
 });
@@ -103,6 +131,32 @@ communitiesRoute.get("/my-communities", authMiddleware, async (c) => {
   } catch (error) {
     console.error("Failed to fetch user communities:", error);
     return c.json({ error: "Internal Server Error" }, 500);
+  }
+});
+
+communitiesRoute.get("/check-community-name", async (c) => {
+  try {
+    const db = drizzle(c.env.DB);
+    const communityName = c.req.query("community-name");
+
+    if (!isValidUsername(communityName || "")) {
+      return c.json({ error: "Invalid username format" }, 400);
+    }
+    if (!communityName || typeof communityName !== "string") {
+      return c.json({ error: "Community Name is required" }, 400);
+    }
+
+    const result = await db
+      .select({ id: communities.id })
+      .from(communities)
+      .where(eq(communities.name, communityName))
+      .get();
+
+    return c.json({ isValid: !result }, 200);
+  } catch (error) {
+    console.log(error);
+
+    return c.json({ error: "Can't validate community name" }, 500);
   }
 });
 

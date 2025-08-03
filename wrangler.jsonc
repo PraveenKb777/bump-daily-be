@@ -7,14 +7,16 @@
     {
       "binding": "DB",
       "database_name": "user-data-dev",
-      "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
+      "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc",
+      "experimental_remote": true
     }
   ],
   "r2_buckets": [
     {
       "binding": "BUCKET",
       "bucket_name": "bd-dev-bucket",
-      "preview_bucket_name": "bd-dev-bucket"
+      "preview_bucket_name": "bd-dev-bucket",
+      "experimental_remote": true
     }
   ],
 
@@ -34,14 +36,16 @@
         {
           "binding": "DB",
           "database_name": "user-data-dev",
-          "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc"
+          "database_id": "843b56ff-637c-43e8-bd5d-c6398ab27dfc",
+          "experimental_remote": true
         }
       ],
       "r2_buckets": [
         {
           "binding": "BUCKET",
           "bucket_name": "bd-dev-bucket",
-          "preview_bucket_name": "bd-dev-bucket"
+          "preview_bucket_name": "bd-dev-bucket",
+          "experimental_remote": true
         }
       ]
     }
@@ -50,7 +54,8 @@
   "vars": {
     "MY_VAR": "my-variable",
     "SUPABASE_JWT_SECRET": "TQcSBD9w9OHlA4XZAsvhMiBNE6myRUD2IqA5pJGlCL5M59jlC5NyW7nlg9ykU1hYSYgPWFUIpT4vt/5UJtz1kA==",
-    "SUPABASE_URL": "https://stnmshwlrotjdgbmxxhx.supabase.co"
+    "SUPABASE_URL": "https://stnmshwlrotjdgbmxxhx.supabase.co",
+    "HOST": "http://localhost:8787"
   }
   // "kv_namespaces": [
   //   {

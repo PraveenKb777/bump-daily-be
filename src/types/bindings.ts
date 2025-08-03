@@ -3,4 +3,5 @@ export type Bindings = {
   SUPABASE_JWT_SECRET: string;
   SUPABASE_URL: string;
   BUCKET: R2Bucket;
+  HOST: string;
 };

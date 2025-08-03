@@ -9,6 +9,12 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
+export const tempFiles = sqliteTable("temp_files", {
+  id: text("id").primaryKey(),
+  isUsed: integer("is_used", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").notNull(),
+});
+
 // Users table - stores basic user info from Supabase
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(), // Supabase user ID
@@ -79,7 +85,7 @@ export const posts = sqliteTable(
     author_id: text("author_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    created_at: text("created_at").notNull(), 
+    created_at: text("created_at").notNull(),
     updated_at: text("updated_at"),
     upvotes: integer("upvotes").default(0),
     downvotes: integer("downvotes").default(0),
@@ -111,7 +117,7 @@ export const postVotes = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     vote_type: integer("vote_type").notNull(),
-    created_at: text("created_at").notNull(), 
+    created_at: text("created_at").notNull(),
   },
   (table) => [
     index("idx_post_votes_post").on(table.post_id),
@@ -130,7 +136,7 @@ export const communityMemberships = sqliteTable(
     user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    joined_at: text("joined_at").notNull(), 
+    joined_at: text("joined_at").notNull(),
     role: text("role").default("member"),
   },
   (table) => [
@@ -173,7 +179,7 @@ export const comments = sqliteTable(
     foreignKey({
       columns: [table.parent_id],
       foreignColumns: [table.id],
-      name: "comments_parent_id_fk"
+      name: "comments_parent_id_fk",
     }).onDelete("cascade"),
   ]
 );
@@ -336,3 +342,6 @@ export type NewComment = typeof comments.$inferInsert;
 
 export type CommentVote = typeof commentVotes.$inferSelect;
 export type NewCommentVote = typeof commentVotes.$inferInsert;
+
+export type TempFiles = typeof tempFiles.$inferSelect;
+export type NewTempFiles = typeof tempFiles.$inferSelect;

@@ -28,8 +28,8 @@ const post = new Hono<{
 post.get("/", async (c) => {
   const db = drizzle(c.env.DB);
   const communityName = c.req.query("community");
-  const sort = c.req.query("sort") || "hot"; // hot, new, top, top24h, trending, controversial
-  const timeFrame = c.req.query("timeFrame") || "24h"; // 1h, 6h, 24h, 7d, 30d, all
+  const sort = c.req.query("sort") || "new"; // hot, new, top, top24h, trending, controversial
+  const timeFrame = c.req.query("timeFrame") || "all"; // 1h, 6h, 24h, 7d, 30d, all
   const limit = Math.min(parseInt(c.req.query("limit") || "25"), 100); // Max 100 posts
   const offset = parseInt(c.req.query("offset") || "0");
   const includeNSFW = c.req.query("nsfw") === "true";
@@ -142,7 +142,7 @@ post.get("/", async (c) => {
       .select({
         id: posts.id,
         title: posts.title,
-        body: posts.body,
+        // body: posts.body,
         type: posts.type,
         url: posts.url,
         score: posts.score,
@@ -274,8 +274,8 @@ post.get("/:id", async (c) => {
     if (post.length === 0) {
       return c.json({ error: "Post not found" }, 404);
     }
-
-    return c.json(post[0]);
+    const returnData = { ...post[0], body: JSON.parse(post[0].body || "") };
+    return c.json(returnData);
   } catch (error) {
     return c.json({ error: "Failed to fetch post" }, 500);
   }
@@ -295,6 +295,8 @@ post.post("/", authMiddleware, async (c) => {
     if (!community_name) {
       community_name = "general";
     }
+    console.log("community_name", community_name);
+
     if (!["text", "link", "image"].includes(type)) {
       return c.json({ error: "Invalid post type" }, 400);
     }
@@ -320,7 +322,7 @@ post.post("/", authMiddleware, async (c) => {
     await db.insert(posts).values({
       id: postId,
       title,
-      body: body || null,
+      body: JSON.stringify(body) || null,
       type,
       url: url || null,
       community_id: community[0].id,
@@ -351,6 +353,8 @@ post.post("/", authMiddleware, async (c) => {
       201
     );
   } catch (error) {
+    console.log(error);
+
     return c.json({ error: "Failed to create post" }, 500);
   }
 });

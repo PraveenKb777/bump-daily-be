@@ -13,7 +13,7 @@ export function setupRoutes(
 ) {
   // Health check
   app.get("/", (c) => {
-    return c.json({ message: "User data API is running" });
+    return c.json({ message: "BD API is running" });
   });
 
   // Mount route groups
