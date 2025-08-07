@@ -600,4 +600,36 @@ post.post("/:postId/comments", authMiddleware, async (c) => {
   }
 });
 
+post.delete("/:postId", async (c) => {
+  try {
+    const db = drizzle(c.env.DB);
+    const postId = c.req.param("postId");
+    const isPost = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, postId))
+      .get();
+    console.log(isPost);
+
+    if (!isPost) {
+      return c.json({ message: `Post with id ${postId} not found` }, 404);
+    }
+
+    await db
+      .update(posts)
+      .set({ is_deleted: true })
+      .where(eq(posts.id, postId));
+
+    return c.json(
+      {
+        message: `Post with id ${postId} and title ${isPost.title} has been deleted Successfully `,
+        isDeleted: true,
+      },
+      202
+    );
+  } catch (error) {
+    console.log("error deleting post with id" + c.req.param("postId"), error);
+  }
+});
+
 export { post };

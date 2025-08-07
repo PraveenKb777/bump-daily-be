@@ -113,6 +113,12 @@ CREATE TABLE `profiles` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `profiles_username_unique` ON `profiles` (`username`);--> statement-breakpoint
+CREATE TABLE `temp_files` (
+	`id` text PRIMARY KEY NOT NULL,
+	`is_used` integer DEFAULT false,
+	`created_at` text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `user_roles` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,

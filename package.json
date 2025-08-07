@@ -4,12 +4,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
+    "deploy:prod": "wrangler deploy --minify --env production",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate:local": "wrangler d1 migrations apply user-data-dev --local",
     "db:migrate:remote": "wrangler d1 migrations apply user-data-dev --remote",
-    "db:migrate:prod": "wrangler d1 migrations apply user-data-prod --remote",
+    "db:migrate:prod": "wrangler d1 migrations apply bump-daily-prod --remote --env production",
     "db:studio": "drizzle-kit studio",
     "db:reset": "rm -f dev.db && npm run db:generate && npm run db:migrate:local"
   },
