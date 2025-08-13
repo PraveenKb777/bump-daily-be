@@ -204,6 +204,59 @@ export const commentVotes = sqliteTable(
   ]
 );
 
+// Mood tracker table
+export const moodTracker = sqliteTable(
+  "mood_tracker",
+  {
+    id: text("id").primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Mandatory mood field with limited allowed values
+    mood: text("mood").notNull(), // 'happy', 'content', 'neutral', 'sad', 'angry'
+
+    // Optional contributing factors (could be multiple, store as comma-separated string or JSON)
+    contributing_factors: text("contributing_factors"),
+    // Allowed values: 'partner', 'body_changes', 'hormonal', 'sleep'
+
+    // Optional free-form notes
+    notes: text("notes"),
+
+    created_at: text("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_mood_tracker_user").on(table.user_id),
+    index("idx_mood_tracker_created").on(table.created_at),
+  ]
+);
+
+// Sleep tracker table
+export const sleepTracker = sqliteTable(
+  "sleep_tracker",
+  {
+    id: text("id").primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    bedtime: text("bedtime").notNull(), // ISO time string
+    wakeup_time: text("wakeup_time").notNull(), // ISO time string
+
+    // Calculated total sleep duration (in minutes or hours)
+    sleep_duration_minutes: integer("sleep_duration_minutes"),
+
+    // Optional notes
+    notes: text("notes"),
+
+    created_at: text("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_sleep_tracker_user").on(table.user_id),
+    index("idx_sleep_tracker_created").on(table.created_at),
+  ]
+);
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -313,6 +366,19 @@ export const commentVotesRelations = relations(commentVotes, ({ one }) => ({
     references: [users.id],
   }),
 }));
+export const moodTrackerRelations = relations(moodTracker, ({ one }) => ({
+  user: one(users, {
+    fields: [moodTracker.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const sleepTrackerRelations = relations(sleepTracker, ({ one }) => ({
+  user: one(users, {
+    fields: [sleepTracker.user_id],
+    references: [users.id],
+  }),
+}));
 
 // Types for TypeScript - Original tables
 export type User = typeof users.$inferSelect;
@@ -345,3 +411,9 @@ export type NewCommentVote = typeof commentVotes.$inferInsert;
 
 export type TempFiles = typeof tempFiles.$inferSelect;
 export type NewTempFiles = typeof tempFiles.$inferSelect;
+
+export type MoodTracker = typeof moodTracker.$inferSelect;
+export type NewMoodTracker = typeof moodTracker.$inferInsert;
+
+export type SleepTracker = typeof sleepTracker.$inferSelect;
+export type NewSleepTracker = typeof sleepTracker.$inferInsert;

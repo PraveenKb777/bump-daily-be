@@ -10,7 +10,7 @@ import {
 } from "../db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { generateId } from "../utils";
-import { authMiddleware } from "../middleware";
+import { authMiddleware, requireRole } from "../middleware";
 import { isValidUsername } from "../utils/checkValidUserName";
 import { optionalAuthMiddleware } from "../middleware/optionalAuth";
 
@@ -160,67 +160,72 @@ communitiesRoute.get("/check-community-name", async (c) => {
   }
 });
 
-communitiesRoute.post("/", authMiddleware, async (c) => {
-  const db = drizzle(c.env.DB);
-  const user = c.get("user");
+communitiesRoute.post(
+  "/",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (c) => {
+    const db = drizzle(c.env.DB);
+    const user = c.get("user");
 
-  try {
-    const { name, display_name, description } = await c.req.json();
+    try {
+      const { name, display_name, description } = await c.req.json();
 
-    if (!name || !display_name) {
-      return c.json({ error: "Name and display name are required" }, 400);
-    }
+      if (!name || !display_name) {
+        return c.json({ error: "Name and display name are required" }, 400);
+      }
 
-    // Check if community name already exists
-    const existing = await db
-      .select()
-      .from(communities)
-      .where(eq(communities.name, name))
-      .limit(1);
+      // Check if community name already exists
+      const existing = await db
+        .select()
+        .from(communities)
+        .where(eq(communities.name, name))
+        .limit(1);
 
-    if (existing.length > 0) {
-      return c.json({ error: "Community name already exists" }, 400);
-    }
+      if (existing.length > 0) {
+        return c.json({ error: "Community name already exists" }, 400);
+      }
 
-    const communityId = generateId();
-    const now = new Date().toISOString();
+      const communityId = generateId();
+      const now = new Date().toISOString();
 
-    // Create community
-    await db.insert(communities).values({
-      id: communityId,
-      name: name.toLowerCase(),
-      display_name,
-      description: description || null,
-      created_by: user.id,
-      created_at: now,
-      member_count: 1,
-    });
-
-    // Add creator as admin member
-    await db.insert(communityMemberships).values({
-      id: generateId(),
-      community_id: communityId,
-      user_id: user.id,
-      joined_at: now,
-      role: "admin",
-    });
-
-    return c.json(
-      {
+      // Create community
+      await db.insert(communities).values({
         id: communityId,
         name: name.toLowerCase(),
         display_name,
-        description,
+        description: description || null,
+        created_by: user.id,
+        created_at: now,
         member_count: 1,
-        post_count: 0,
-      },
-      201
-    );
-  } catch (error) {
-    console.log(error);
-    return c.json({ error: "Failed to create community" }, 500);
+      });
+
+      // Add creator as admin member
+      await db.insert(communityMemberships).values({
+        id: generateId(),
+        community_id: communityId,
+        user_id: user.id,
+        joined_at: now,
+        role: "admin",
+      });
+
+      return c.json(
+        {
+          id: communityId,
+          name: name.toLowerCase(),
+          display_name,
+          description,
+          member_count: 1,
+          post_count: 0,
+        },
+        201
+      );
+    } catch (error) {
+      console.log(error);
+      return c.json({ error: "Failed to create community" }, 500);
+    }
   }
-});
+);
 communitiesRoute.post("/:name/membership", authMiddleware, async (c) => {
   const db = drizzle(c.env.DB);
   const user = c.get("user");
